@@ -14,6 +14,13 @@ def khoi_tao_bang():
         gia REAL
     )
     """)
+    con_tro.execute("""
+        CREATE TABLE IF NOT EXISTS nguoi_dung(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        tai_khoan TEXT UNIQUE,
+        mat_khau_ma_hoa TEXT
+    )
+    """)
     ket_noi.commit()
     ket_noi.close()
     
