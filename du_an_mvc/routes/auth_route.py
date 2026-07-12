@@ -39,7 +39,7 @@ def api_dang_ky(user:TaiKhoan):
         ket_noi=lay_ket_noi()
         con_tro=ket_noi.cursor()
         con_tro.execute(
-            "INSERT INTO nguoi_dung(tai_khoa,mat_khau_ma_hoa) VALUES (?,?)",
+            "INSERT INTO nguoi_dung(tai_khoan,mat_khau_ma_hoa) VALUES (?,?)",
             (user.tai_khoan,mat_khau_ma_hoa)
         )
         ket_noi.commit()
