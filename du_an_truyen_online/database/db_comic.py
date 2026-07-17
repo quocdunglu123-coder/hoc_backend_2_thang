@@ -9,20 +9,31 @@ def khoi_tao_he_thong():
     con_tro=ket_noi.cursor()
 
     con_tro.execute("""
-        CREATE TABLE IF NOT EXISTS nguoi_dung(
+    CREATE TABLE IF NOT EXISTS nguoi_dung(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         tai_khoan TEXT UNIQUE,
         mat_khau_ma_hoa TEXT,
-        vai_tro TEXT DEFAULT 'user'--'user' hoặc 'admin'
+        vai_tro TEXT DEFAULT 'user'
     )
     """) 
 
     con_tro.execute("""
-        CREATE TABLE IF NOT EXISTS truyen(
+    CREATE TABLE IF NOT EXISTS truyen(
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         ten_truyen TEXT,
         tac_gia TEXT,
         noi_dung TEXT
+    )
+    """)
+
+    con_tro.execute("""
+    CREATE TABLE IF NOT EXISTS lich_su_doc(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,       
+        nguoi_dung_id INTEGER,
+        truyen_id INTEGER,
+        ngay_doc TEXT DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (nguoi_dung_id) REFERENCES nguoi_dung(id),
+        FOREIGN KEY (truyen_id) REFERENCES truyen(id)
     )
     """)
 

@@ -66,3 +66,27 @@ def api_xoa_truyen(truyen_id:int,nguoi_dung=Depends(xac_thuc_nguoi_dung)):
     ket_noi.commit()
     ket_noi.close()
     return{"status":"Thành công","message":f"Admin '{nguoi_dung['sub']}' đã xóa hoàn toàn truyện ID số {truyen_id}!"}
+
+class LichSuForm(BaseModel):
+    truyen_id:int
+
+@router_truyen.post("/luu_lich_su")
+def api_luu_lich_su(form_data:LichSuForm,nguoi_dung=Depends(xac_thuc_nguoi_dung)):
+    ket_noi=lay_ket_noi()
+    con_tro=ket_noi.cursor()
+    con_tro.execute("SELECT id FROM nguoi_dung WHERE tai_khoan=?",(nguoi_dung["sub"],))
+    user_db=con_tro.fetchone()
+
+    if user_db is None:
+        ket_noi.close()
+        raise HTTPException(status_code=404,detail="Không tìm thấy thông tin người dùng!")
+    
+    user_id=user_db["id"]
+
+    con_tro.execute(
+        "INSERT INTO lich_su_doc (nguoi_dung_id,truyen_id) VALUES (?,?)",
+        (user_id,form_data.truyen_id)
+    )
+    ket_noi.commit()
+    ket_noi.close()
+    return{"status":"Thành công","message":f"Đã lưu truyện id số {form_data.truyen_id} vào lịch sử đọc của bạn!"}
