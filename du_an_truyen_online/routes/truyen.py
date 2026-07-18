@@ -1,3 +1,4 @@
+import sqlite3
 from fastapi import APIRouter,HTTPException,Depends,status
 from pydantic import BaseModel
 from database.db_comic import lay_ket_noi
@@ -90,3 +91,33 @@ def api_luu_lich_su(form_data:LichSuForm,nguoi_dung=Depends(xac_thuc_nguoi_dung)
     ket_noi.commit()
     ket_noi.close()
     return{"status":"Thành công","message":f"Đã lưu truyện id số {form_data.truyen_id} vào lịch sử đọc của bạn!"}
+
+@router_truyen.get("/xem-lich-su")
+def api_xem_lich_su(nguoi_dung=Depends(xac_thuc_nguoi_dung)):
+    ket_noi=lay_ket_noi()
+    ket_noi.row_factory = sqlite3.Row
+    con_tro=ket_noi.cursor()
+    cau_lenh_sql = """
+        SELECT truyen.ten_truyen,truyen.tac_gia,lich_su_doc.ngay_doc
+        FROM lich_su_doc
+        INNER JOIN truyen ON lich_su_doc.truyen_id=truyen.id
+        INNER JOIN nguoi_dung ON lich_su_doc.nguoi_dung_id=nguoi_dung.id
+        WHERE nguoi_dung.tai_khoan=?
+        ORDER BY lich_su_doc.ngay_doc DESC
+    """
+    con_tro.execute(cau_lenh_sql,(nguoi_dung["sub"],))
+    tat_ca_lich_su=con_tro.fetchall()
+    ket_noi.close()
+
+    danh_sach_ls=[]
+    for dong in tat_ca_lich_su:
+        danh_sach_ls.append({
+            "ten_truyen":dong["ten_truyen"],
+            "tac_gia":dong["tac_gia"],
+            "ngay_doc":dong["ngay_doc"]
+        })
+    return{
+        "status":"Thành công",
+        "tai_khoan":nguoi_dung["sub"],
+        "lich_su_doc":danh_sach_ls
+    }
