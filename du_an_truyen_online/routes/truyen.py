@@ -12,13 +12,28 @@ class TruyenForm(BaseModel):
     noi_dung:str
 
 @router_truyen.get("/xem-truyen")
-def api_xem_truyen():
+def api_xem_truyen(tu_khoa:str="",trang:int=1,so_luong:int=5):
+    bo_qua=(trang-1)*so_luong
     ket_noi=lay_ket_noi()
     con_tro=ket_noi.cursor()
-    con_tro.execute("SELECT * FROM truyen")
+    cau_lenh_sql="""
+        SELECT * FROM truyen
+        WHERE ten_truyen LIKE ?
+        LIMIT ? OFFSET ?
+    """
+    tu_khoa_tim_kiem=f"%{tu_khoa}%"
+    con_tro.execute(cau_lenh_sql,(tu_khoa_tim_kiem,so_luong,bo_qua))
     tat_ca_truyen=con_tro.fetchall()
     ket_noi.close()
-    return [dict(t) for t in tat_ca_truyen]
+    return {
+        "status":"Thành công",
+        "bo_loc":{
+            "tu_khoa_tim_kiem":tu_khoa,
+            "trang_hien_tai":trang,
+            "so_luong_moi_trang":so_luong
+        },
+        "danh_sach_truyen":[dict(t) for t in tat_ca_truyen]
+    }
 
 @router_truyen.post("/them-truyen")
 def api_them_truyen(truyen:TruyenForm ,nguoi_dung=Depends(xac_thuc_nguoi_dung)):
