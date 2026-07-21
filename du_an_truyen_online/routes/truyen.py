@@ -15,10 +15,19 @@ class TruyenForm(BaseModel):
 def api_xem_truyen(tu_khoa:str="",trang:int=1,so_luong:int=5):
     bo_qua=(trang-1)*so_luong
     ket_noi=lay_ket_noi()
+    ket_noi.row_factory=sqlite3.Row
     con_tro=ket_noi.cursor()
     cau_lenh_sql="""
-        SELECT * FROM truyen
-        WHERE ten_truyen LIKE ?
+        SELECT 
+            truyen.id,
+            truyen.ten_truyen,
+            truyen.tac_gia,
+            IFNULL(ROUND(AVG(danh_gia.so_sao),1),0) AS diem_trung_binh,
+            COUNT(danh_gia.id) AS tong_luot_danh_gia
+        FROM truyen
+        LEFT JOIN danh_gia ON truyen.id=danh_gia.truyen_id
+        WHERE truyen.ten_truyen LIKE ?
+        GROUP BY truyen.id
         LIMIT ? OFFSET ?
     """
     tu_khoa_tim_kiem=f"%{tu_khoa}%"
@@ -136,3 +145,29 @@ def api_xem_lich_su(nguoi_dung=Depends(xac_thuc_nguoi_dung)):
         "tai_khoan":nguoi_dung["sub"],
         "lich_su_doc":danh_sach_ls
     }
+
+class ChamDiemForm(BaseModel):
+    truyen_id:int
+    so_sao:int
+    binh_luan:str
+
+@router_truyen.post("/cham-diem-truyen")
+def api_cham_diem_truyen(form_data:ChamDiemForm,nguoi_dung=Depends(xac_thuc_nguoi_dung)):
+    ket_noi=lay_ket_noi()
+    con_tro=ket_noi.cursor()
+    con_tro.execute("SELECT id FROM nguoi_dung WHERE tai_khoan=?",(nguoi_dung["sub"],))
+    user_db=con_tro.fetchone()
+
+    if user_db is None:
+        ket_noi.close()
+        raise HTTPException(status_code=404,detail="Không tìm thấy người dùng!")
+    
+    user_id=user_db["id"]
+
+    con_tro.execute(
+        "INSERT INTO danh_gia(nguoi_dung_id,truyen_id,so_sao,binh_luan) VALUES (?,?,?,?)",
+        (user_id,form_data.truyen_id,form_data.so_sao,form_data.binh_luan)
+    )
+    ket_noi.commit()
+    ket_noi.close()
+    return{"status":"Thành công","message":f"Cảm ơn bạn đã chấm {form_data.so_sao} sao cho bộ truyện này"}

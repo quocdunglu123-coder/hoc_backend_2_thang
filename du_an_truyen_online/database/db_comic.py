@@ -37,5 +37,17 @@ def khoi_tao_he_thong():
     )
     """)
 
+    con_tro.execute("""
+    CREATE TABLE IF NOT EXISTS danh_gia(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        nguoi_dung_id INTEGER,
+        truyen_id INTEGER,
+        so_sao INTEGER CHECK (so_sao >= 1 AND so_sao <= 5),
+        binh_luan TEXT,
+        FOREIGN KEY (nguoi_dung_id) REFERENCES nguoi_dung(id),
+        FOREIGN KEY (truyen_id) REFERENCES truyen(id)
+    )
+    """)
+
     ket_noi.commit()
     ket_noi.close()
