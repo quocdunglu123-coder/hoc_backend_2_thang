@@ -49,5 +49,10 @@ def khoi_tao_he_thong():
     )
     """)
 
+    con_tro.execute("""
+    CREATE INDEX IF NOT EXISTS idx_ten_truyen
+    ON truyen(ten_truyen)
+    """)
+
     ket_noi.commit()
     ket_noi.close()
